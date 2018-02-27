@@ -489,6 +489,29 @@ export class Tensor implements types.BasicTensor {
     return ops.slice(this, begin_, size_);
   }
 
+  /** Concatenates two tensors along the specified axis:
+   *
+   *    import * as pr from "propel";
+   *    t = pr.tensor([[1, 2], [3, 4]]);
+   *    t.concat([[5, 6], [7, 8]]);
+   */
+  concat(t: types.TensorLike, ...rest: Array<types.TensorLike | number>)
+      : Tensor {
+    // Ideally we could write the type signature like this:
+    //   concat(...tensors: Tensor[], axis = 0): Tensor
+    // However this seems to confuse typescript.
+    let axis = 0;
+    if (typeof rest[rest.length - 1] === "number") {
+      axis = rest.pop() as number;
+    }
+    const tensors = [this, this.colocate(t)];
+    for (const arg of rest) {
+      assert(arg instanceof Tensor);
+      tensors.push(this.colocate(arg as Tensor));
+    }
+    return ops.concat(axis, ...tensors);
+  }
+
   /** Reshapes the tensor without changing its data. O(1).
    *
    *    import { range } from "propel";
