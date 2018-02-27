@@ -947,6 +947,14 @@ testDevices(async function api_concat(tensor, device) {
   const t = tensor([[1, 2], [3, 4]]);
   const s = t.concat([[5, 6]]);
   assertAllEqual(s, [[1, 2], [3, 4], [5, 6]]);
+  // Backwards pass.
+  const f = (x, y) => x.concat(y.mul(2), 0);
+  const g = multigrad(f, [0, 1]);
+  const gab = g(a, b);
+  assertAllEqual(gab[0], [[[1, 1, 1], [1, 1, 1]],
+                          [[1, 1, 1], [1, 1, 1]]]);
+  assertAllEqual(gab[1], [[[2, 2, 2], [2, 2, 2]],
+                          [[2, 2, 2], [2, 2, 2]]]);
 });
 
 test(async function api_cast() {
